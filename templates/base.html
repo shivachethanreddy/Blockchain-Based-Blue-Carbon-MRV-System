@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>{% block title %}NCCR Blue Carbon Portal{% endblock %}</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+	<div class="bg-gradient"></div>
+	<header class="site-header">
+		<div class="container header-inner">
+			<div class="brand">
+				<img src="{{ url_for('static', filename='images/nccr-gov-logo.svg') }}" alt="Government of India - NCCR" class="brand-logo" />
+				<div>
+					<div class="brand-title">National Centre for Coastal Research</div>
+					<div class="brand-subtitle">Blue Carbon Portal by Government of India</div>
+				</div>
+			</div>
+			<nav class="nav">
+				<a class="nav-link glass" href="/">Home</a>
+				<a class="nav-link glass" href="{{ url_for('admin_login') }}">NCCR Admin</a>
+				<a class="nav-link glass" href="{{ url_for('ngo_register') }}">NGO/Panchayat</a>
+				
+				<a class="nav-link glass" href="{{ url_for('companies_login') }}">Companies</a>
+			</nav>
+			
+		</div>
+	</header>
+
+	<main class="container">
+		{% with messages = get_flashed_messages(with_categories=true) %}
+			{% if messages %}
+				<ul class="flash-list">
+					{% for category, message in messages %}
+						<li class="flash {{ category }}">{{ message }}</li>
+					{% endfor %}
+				</ul>
+			{% endif %}
+		{% endwith %}
+		{% block content %}{% endblock %}
+	</main>
+
+	<footer class="site-footer">
+		<div class="container footer-inner">
+			<div>© {{ 2025 }} NCCR, Ministry of Earth Sciences, Government of India</div>
+			<div class="footer-links">
+				<a href="#">Accessibility</a>
+				<a href="#">Privacy</a>
+				<a href="#">Contact</a>
+			</div>
+		</div>
+	</footer>
+
+	<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+

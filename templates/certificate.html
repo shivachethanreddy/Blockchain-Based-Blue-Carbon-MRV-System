@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Certificate of Carbon Credit Purchase</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; }
+        .certificate { border: 10px solid #ccc; padding: 50px; width: 800px; margin: 50px auto; }
+        .title { font-size: 50px; font-weight: bold; }
+        .subtitle { font-size: 20px; }
+        .name { font-size: 40px; font-style: italic; margin: 50px 0; }
+        .details { font-size: 20px; }
+        .download-button { margin: 20px; }
+        @media print {
+            .download-button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="download-button">
+        <button onclick="window.print()">Download Certificate</button>
+    </div>
+    <div class="certificate">
+        <div class="title">Certificate of Carbon Credit Purchase</div>
+        <div class="subtitle">This certificate is proudly presented to</div>
+        <div class="name">{{ company_name }}</div>
+        <div class="details">
+            For purchasing {{ tokens }} carbon credits from the project:
+            <br>
+            <strong>{{ project_title }}</strong>
+        </div>
+    </div>
+</body>
+</html>

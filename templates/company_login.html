@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Companies/Buyers Login{% endblock %}
+{% block content %}
+	<h2 class="page-title">Companies/Buyers Login</h2>
+	<form class="form" method="post">
+		<label>Company Name
+			<input name="company" required />
+		</label>
+		<label>Email
+			<input type="email" name="email" required />
+		</label>
+		<label>Password
+			<input type="password" name="password" required />
+		</label>
+		<button class="btn" type="submit">Login</button>
+	</form>
+
+	<hr class="divider" />
+	<p>New company? <a class="nav-link" href="{{ url_for('companies_register') }}">Create an account</a></p>
+{% endblock %}
+

@@ -1,0 +1,958 @@
+{% extends 'base.html' %}
+{% block title %}NGO Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    /* Enhanced Black Theme with Modern Design */
+    :root {
+        --color-bg-black: #000000;
+        --color-bg-dark-gray: #0a0a0a;
+        --color-bg-card: #111111;
+        --color-text-white: #ffffff;
+        --color-text-gray: #b0b0b0;
+        --color-border-gray: #2a2a2a;
+        --color-border-light: #404040;
+        --color-btn-blue: #0066ff;
+        --color-btn-blue-hover: #0052cc;
+        --color-success: #00ff88;
+        --color-warning: #ffaa00;
+        --color-error: #ff4444;
+        --gradient-primary: linear-gradient(135deg, #0066ff 0%, #0044cc 100%);
+        --gradient-card: linear-gradient(145deg, #111111 0%, #1a1a1a 100%);
+        --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.3);
+        --shadow-glow: 0 0 20px rgba(0, 102, 255, 0.2);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        background: var(--color-bg-black);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+    }
+
+    .dashboard-container, .status-container {
+        padding: 40px 30px;
+        min-height: 100vh;
+        background: var(--color-bg-black);
+        color: var(--color-text-white);
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    /* Animated background pattern */
+    .dashboard-container::before, .status-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(0, 102, 255, 0.03) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(0, 255, 136, 0.03) 0%, transparent 50%);
+        pointer-events: none;
+        animation: backgroundShift 20s ease-in-out infinite;
+    }
+
+    @keyframes backgroundShift {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--color-text-white);
+        margin-bottom: 30px;
+        letter-spacing: -0.02em;
+        position: relative;
+        z-index: 1;
+        background: linear-gradient(135deg, #ffffff 0%, #b0b0b0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Enhanced Dashboard Header */
+    .dashboard-header {
+        border-bottom: 1px solid var(--color-border-gray);
+        padding-bottom: 30px;
+        margin-bottom: 40px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .ngo-info h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--color-text-white);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .ngo-info h3::before {
+        content: '🏢';
+        font-size: 1.5rem;
+        filter: grayscale(0.3);
+    }
+
+    .ngo-details {
+        font-size: 1rem;
+        color: var(--color-text-gray);
+        line-height: 1.8;
+        background: var(--gradient-card);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid var(--color-border-gray);
+        box-shadow: var(--shadow-soft);
+    }
+
+    .ngo-details strong {
+        color: var(--color-text-white);
+        font-weight: 600;
+    }
+
+    .professional-id, .session-token {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        background: var(--color-bg-dark-gray);
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        border: 1px solid var(--color-border-light);
+    }
+
+    /* Enhanced Session Info */
+    .session-info {
+        padding: 30px;
+        border-radius: 16px;
+        background: var(--gradient-card);
+        border: 1px solid var(--color-border-gray);
+        box-shadow: var(--shadow-soft);
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    .session-info::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-primary);
+    }
+
+    .session-info h4 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: var(--color-text-white);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .session-info h4::before {
+        content: '🔗';
+        font-size: 1.2rem;
+    }
+
+    .session-info p {
+        font-size: 1rem;
+        margin-bottom: 12px;
+        color: var(--color-text-gray);
+    }
+
+    .session-info strong {
+        color: var(--color-text-white);
+        font-weight: 600;
+    }
+
+    .session-actions {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 24px;
+    }
+
+    /* Enhanced Button Styles */
+    .btn {
+        padding: 14px 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        position: relative;
+        overflow: hidden;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 140px;
+        justify-content: center;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+        left: 100%;
+    }
+
+    .btn-flutter {
+        background: var(--gradient-primary);
+        color: var(--color-text-white);
+        box-shadow: var(--shadow-glow);
+    }
+
+    .btn-flutter:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(0, 102, 255, 0.3);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: var(--color-btn-blue);
+        border: 2px solid var(--color-btn-blue);
+    }
+
+    .btn-secondary:hover {
+        background: var(--color-btn-blue);
+        color: var(--color-text-white);
+        transform: translateY(-2px);
+    }
+
+    /* Enhanced Status Page */
+    .status-info {
+        font-size: 1.125rem;
+        line-height: 1.8;
+        color: var(--color-text-gray);
+        margin-bottom: 50px;
+        background: var(--gradient-card);
+        padding: 24px;
+        border-radius: 12px;
+        border: 1px solid var(--color-border-gray);
+        box-shadow: var(--shadow-soft);
+        position: relative;
+        z-index: 1;
+    }
+
+    .status-info p {
+        margin-bottom: 8px;
+    }
+
+    .status-info strong {
+        color: var(--color-text-white);
+        font-weight: 600;
+    }
+
+    .status-boxes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 30px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .status-box {
+        padding: 32px;
+        border-radius: 16px;
+        background: var(--gradient-card);
+        border: 2px solid var(--color-border-gray);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 280px;
+    }
+
+    .status-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--color-border-gray);
+        transition: all 0.3s ease;
+    }
+
+    .status-box:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-soft);
+        border-color: var(--color-border-light);
+    }
+
+    .status-box.active {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-glow);
+        border-color: var(--color-btn-blue);
+    }
+
+    .status-box.active::before {
+        background: var(--gradient-primary);
+    }
+
+    .status-box.accepted.active {
+        border-color: var(--color-success);
+        box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+    }
+
+    .status-box.accepted.active::before {
+        background: linear-gradient(135deg, var(--color-success) 0%, #00cc66 100%);
+    }
+
+    .status-box.pending.active {
+        border-color: var(--color-warning);
+        box-shadow: 0 0 20px rgba(255, 170, 0, 0.2);
+    }
+
+    .status-box.pending.active::before {
+        background: linear-gradient(135deg, var(--color-warning) 0%, #ff8800 100%);
+    }
+
+    .status-box.declined.active {
+        border-color: var(--color-error);
+        box-shadow: 0 0 20px rgba(255, 68, 68, 0.2);
+    }
+
+    .status-box.declined.active::before {
+        background: linear-gradient(135deg, var(--color-error) 0%, #cc3333 100%);
+    }
+    
+    .status-box h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--color-text-white);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .status-box p {
+        font-size: 1rem;
+        color: var(--color-text-gray);
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+
+    .status-indicator {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--color-text-white);
+        position: relative;
+        animation: pulse 2s infinite;
+    }
+
+    .status-indicator.accepted {
+        background: var(--color-success);
+        box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+    }
+
+    .status-indicator.pending {
+        background: var(--color-warning);
+        box-shadow: 0 0 10px rgba(255, 170, 0, 0.3);
+    }
+
+    .status-indicator.declined {
+        background: var(--color-error);
+        box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+
+    .status-message {
+        margin-top: 24px;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid var(--color-border-gray);
+        background: var(--color-bg-dark-gray);
+        position: relative;
+    }
+
+    .status-message::before {
+        content: 'ℹ️';
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        font-size: 1.2rem;
+    }
+
+    .status-message p {
+        font-size: 0.95rem;
+        margin: 0 0 8px 0;
+        color: var(--color-text-white);
+        line-height: 1.6;
+    }
+
+    .status-message p:last-child {
+        margin-bottom: 0;
+    }
+
+    .status-box .btn {
+        margin-top: 24px;
+        width: 100%;
+    }
+
+    /* Loading Animation */
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--color-border-gray);
+        border-radius: 50%;
+        border-top-color: var(--color-btn-blue);
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+
+    /* Notification Styles */
+    .status-notification {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .notification-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--color-text-white);
+    }
+
+    .notification-icon {
+        font-size: 1.2rem;
+    }
+
+    .notification-message {
+        flex: 1;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        color: var(--color-text-gray);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+    .notification-close:hover {
+        background: var(--color-border-gray);
+        color: var(--color-text-white);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 2rem;
+        }
+        
+        .dashboard-container, .status-container {
+            padding: 20px 16px;
+        }
+        
+        .session-actions {
+            flex-direction: column;
+        }
+        
+        .btn-flutter, .btn-secondary {
+            width: 100%;
+        }
+        
+        .status-boxes {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .status-box {
+            min-height: auto;
+            padding: 24px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .page-title {
+            font-size: 1.75rem;
+        }
+        
+        .ngo-details, .session-info, .status-info {
+            padding: 16px;
+        }
+        
+        .status-box {
+            padding: 20px;
+        }
+    }
+</style>
+
+{% if ngo.status == 'accepted' %}
+    <div class="dashboard-container" 
+         data-professional-id="{{ ngo.professional_id }}"
+         data-session-token="{{ session_id }}"
+         data-org-name="{{ ngo.org_name }}"
+         data-org-type="{{ ngo.org_type }}">
+        <div class="dashboard-header">
+            <h2 class="page-title">NGO/Panchayat Dashboard</h2>
+            <div class="ngo-info">
+                <h3>Welcome, {{ ngo.org_name }}</h3>
+                <p class="ngo-details">
+                    <strong>Professional ID:</strong> <span class="professional-id">{{ ngo.professional_id }}</span><br>
+                    <strong>Session Token:</strong> <span class="session-token">{{ session_id }}</span><br>
+                    <strong>Type:</strong> {{ ngo.org_type }}<br>
+                    <strong>Project:</strong> {{ ngo.project_title }}
+                </p>
+            </div>
+        </div>
+        
+        <div class="session-info">
+            <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; color: var(--color-text-white);">App Integration</h4>
+            <p style="font-size: 1rem; margin-bottom: 8px;"><strong>Session Information:</strong> You are logged in with Professional ID: {{ ngo.professional_id }}</p>
+            <p style="font-size: 1rem; margin-bottom: 20px;"><strong>Flutter Integration:</strong> Use this ID to log in to the 🔵BlueChain🔗 mobile app</p>
+            <div class="session-actions">
+                <button class="btn btn-flutter" onclick="downloadBlueChainApp()">
+                    <span class="flutter-icon">📱</span>
+                    Download 🔵BlueChain🔗 App
+                </button>
+                <button class="btn btn-secondary" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="status-container" 
+         data-org-name="{{ ngo.org_name }}"
+         data-project-title="{{ ngo.project_title }}"
+         data-org-type="{{ ngo.org_type }}"
+         data-status="{{ ngo.status }}"
+         data-ngo-id="{{ ngo.id }}"
+         data-session-id="{{ session_id }}">
+        <h2 class="page-title">Application Status</h2>
+        
+        <!-- Enhanced Organization Info Card -->
+        <div class="status-info">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <div style="font-size: 1.5rem;">📋</div>
+                <h3 style="margin: 0; color: var(--color-text-white); font-size: 1.25rem;">Application Details</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <div>
+                    <p style="margin: 0 0 4px 0; font-size: 0.9rem; color: var(--color-text-gray);">Organization</p>
+                    <p style="margin: 0; font-size: 1.1rem; color: var(--color-text-white); font-weight: 600;">{{ ngo.org_name }}</p>
+                </div>
+                <div>
+                    <p style="margin: 0 0 4px 0; font-size: 0.9rem; color: var(--color-text-gray);">Project</p>
+                    <p style="margin: 0; font-size: 1.1rem; color: var(--color-text-white); font-weight: 600;">{{ ngo.project_title }}</p>
+                </div>
+                <div>
+                    <p style="margin: 0 0 4px 0; font-size: 0.9rem; color: var(--color-text-gray);">Type</p>
+                    <p style="margin: 0; font-size: 1.1rem; color: var(--color-text-white); font-weight: 600;">{{ ngo.org_type }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Enhanced Status Boxes - Show only relevant status -->
+        <div class="status-boxes">
+            {% if ngo.status == 'accepted' %}
+            <!-- Accepted Status Box - Only shown when status is accepted -->
+            <div class="status-box accepted active">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <div class="status-indicator accepted"></div>
+                    <h3>✅ Application Accepted</h3>
+                </div>
+                <div class="status-content">
+                    <p style="font-size: 1.1rem; margin-bottom: 20px;">Congratulations! Your application has been approved and you can now access the full dashboard.</p>
+                    
+                    <div class="status-message" style="background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 200, 100, 0.05) 100%); border-color: var(--color-success);">
+                        <p><strong>🎉 Welcome to Blue Carbon Initiative!</strong></p>
+                        <p>Your organization has been successfully verified and approved for participation in the Blue Carbon credit system.</p>
+                        <p style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border-gray);">
+                            <strong>What you can do now:</strong><br>
+                            • Access the full dashboard<br>
+                            • Submit project proposals<br>
+                            • Track your carbon credits<br>
+                            • Connect with the mobile app
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 20px;">
+                        <button class="btn btn-flutter" onclick="goToDashboard()" style="flex: 1;">
+                            🚀 Access Dashboard
+                        </button>
+                        <button class="btn btn-secondary" onclick="contactSupport()" style="flex: 1;">
+                            📞 Get Help
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% elif ngo.status == 'pending' %}
+            <!-- Pending Status Box - Only shown when status is pending -->
+            <div class="status-box pending active">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <div class="status-indicator pending"></div>
+                    <h3>⏳ Pending Review</h3>
+                </div>
+                <div class="status-content">
+                    <p style="font-size: 1.1rem; margin-bottom: 20px;">Your application is currently under review by our verification team.</p>
+                    
+                    <div class="status-message">
+                        <p><strong>🔍 Verification in Progress</strong></p>
+                        <p>Our team is carefully reviewing your application and supporting documents. This process typically takes 2-3 business days.</p>
+                        <p style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border-gray);">
+                            <strong>What happens next?</strong><br>
+                            • Document verification<br>
+                            • Background checks<br>
+                            • Final approval decision
+                        </p>
+                    </div>
+                    <button class="btn btn-secondary" onclick="refreshStatus()" style="margin-top: 20px;">
+                        <span class="loading-spinner" id="refreshSpinner" style="display: none;"></span>
+                        <span id="refreshText">🔄 Refresh Status</span>
+                    </button>
+                </div>
+            </div>
+            {% elif ngo.status == 'declined' %}
+            <!-- Declined Status Box - Only shown when status is declined -->
+            <div class="status-box declined active">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <div class="status-indicator declined"></div>
+                    <h3>❌ Application Declined</h3>
+                </div>
+                <div class="status-content">
+                    <p style="font-size: 1.1rem; margin-bottom: 20px;">Unfortunately, your application was not approved at this time.</p>
+                    
+                    <div class="status-message" style="background: linear-gradient(135deg, rgba(255, 68, 68, 0.1) 0%, rgba(200, 50, 50, 0.05) 100%); border-color: var(--color-error);">
+                        <p><strong>📋 Application Not Approved</strong></p>
+                        <p>After careful review, your application did not meet the current requirements for participation in the Blue Carbon initiative.</p>
+                        <p style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border-gray);">
+                            <strong>Next Steps:</strong><br>
+                            • Review application requirements<br>
+                            • Address any missing documentation<br>
+                            • Consider reapplying in the future
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 20px;">
+                        <button class="btn btn-secondary" onclick="goToHome()" style="flex: 1;">
+                            🏠 Return to Home
+                        </button>
+                        <button class="btn btn-flutter" onclick="contactSupport()" style="flex: 1;">
+                            📞 Contact Support
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Default case - Show pending if status is unknown -->
+            <div class="status-box pending active">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <div class="status-indicator pending"></div>
+                    <h3>⏳ Pending Review</h3>
+                </div>
+                <div class="status-content">
+                    <p style="font-size: 1.1rem; margin-bottom: 20px;">Your application is currently under review by our verification team.</p>
+                    
+                    <div class="status-message">
+                        <p><strong>🔍 Verification in Progress</strong></p>
+                        <p>Our team is carefully reviewing your application and supporting documents. This process typically takes 2-3 business days.</p>
+                        <p style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border-gray);">
+                            <strong>What happens next?</strong><br>
+                            • Document verification<br>
+                            • Background checks<br>
+                            • Final approval decision
+                        </p>
+                    </div>
+                    <button class="btn btn-secondary" onclick="refreshStatus()" style="margin-top: 20px;">
+                        <span class="loading-spinner" id="refreshSpinner" style="display: none;"></span>
+                        <span id="refreshText">🔄 Refresh Status</span>
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Additional Information Section -->
+        <div style="margin-top: 40px; padding: 24px; background: var(--gradient-card); border-radius: 12px; border: 1px solid var(--color-border-gray); position: relative; z-index: 1;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <div style="font-size: 1.5rem;">ℹ️</div>
+                <h3 style="margin: 0; color: var(--color-text-white); font-size: 1.25rem;">Need Help?</h3>
+            </div>
+            <p style="color: var(--color-text-gray); margin-bottom: 16px;">
+                If you have any questions about your application status or need assistance, our support team is here to help.
+            </p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button class="btn btn-secondary" onclick="contactSupport()" style="flex: 1; min-width: 150px;">
+                    📧 Email Support
+                </button>
+                <button class="btn btn-secondary" onclick="viewRequirements()" style="flex: 1; min-width: 150px;">
+                    📋 View Requirements
+                </button>
+                <button class="btn btn-secondary" onclick="goToHome()" style="flex: 1; min-width: 150px;">
+                    🏠 Back to Home
+                </button>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<script>
+    // Download BlueChain Android APK
+    function downloadBlueChainApp() {
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<span class="loading-spinner"></span> Preparing download...';
+        button.disabled = true;
+        
+        // Navigate directly to the primary download endpoint
+        const url = '/download/app';
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.rel = 'noopener';
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 800);
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 1200);
+    }
+    
+    // Enhanced Logout Function
+    function logout() {
+        if (confirm('Are you sure you want to log out?\n\nYou will need to log in again to access your dashboard.')) {
+            // Show loading state
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="loading-spinner"></span> Logging out...';
+            button.disabled = true;
+            
+            setTimeout(() => {
+            window.location.href = "{{ url_for('ngo_login') }}";
+            }, 1000);
+        }
+    }
+    
+    // Enhanced Status Refresh Function
+    function refreshStatus() {
+        const button = event.target;
+        const spinner = document.getElementById('refreshSpinner');
+        const text = document.getElementById('refreshText');
+        
+        // Show loading state
+        spinner.style.display = 'inline-block';
+        text.textContent = 'Refreshing...';
+        button.disabled = true;
+        
+        // Simulate refresh delay
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+    }
+    
+    // Contact Support Function
+    function contactSupport() {
+        const container = document.querySelector('.status-container') || document.querySelector('.dashboard-container');
+        const email = 'support@bluecarbon-sih.com';
+        const orgName = container.dataset.orgName;
+        const projectTitle = container.dataset.projectTitle;
+        const orgType = container.dataset.orgType;
+        const status = container.dataset.status;
+        
+        const subject = `Application Status Inquiry - ${orgName}`;
+        const body = `Hello Blue Carbon Support Team,\n\nI have a question about my application status:\n\nOrganization: ${orgName}\nProject: ${projectTitle}\nType: ${orgType}\nStatus: ${status}\n\nPlease provide assistance.\n\nThank you.`;
+        
+        const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.open(mailtoUrl, '_blank');
+    }
+    
+    // View Requirements Function
+    function viewRequirements() {
+        const requirements = `
+🔵 Blue Carbon Initiative - Application Requirements
+
+📋 ELIGIBILITY CRITERIA:
+• Registered NGO or Panchayat
+• Valid government registration documents
+• Environmental conservation focus
+• Minimum 2 years operational history
+• Clean compliance record
+
+📄 REQUIRED DOCUMENTS:
+• Organization registration certificate
+• PAN/TAN documents
+• Bank account details
+• Project proposal (if applicable)
+• Environmental impact assessment
+• Previous project reports (if any)
+
+⏰ PROCESS TIMELINE:
+• Application review: 2-3 business days
+• Document verification: 1-2 business days
+• Final approval: 1 business day
+• Total: 3-5 business days
+
+📞 SUPPORT:
+Email: support@bluecarbon-sih.com
+Phone: +91-XXX-XXXX-XXXX
+        `;
+        
+        alert(requirements);
+    }
+    
+    // Go to Home Function
+    function goToHome() {
+        window.location.href = "{{ url_for('index') }}";
+    }
+    
+    // Go to Dashboard Function
+    function goToDashboard() {
+        const container = document.querySelector('.status-container');
+        const ngoId = container.dataset.ngoId || '{{ ngo.id }}';
+        const sessionId = container.dataset.sessionId || '{{ session_id }}';
+        
+        if (ngoId && sessionId) {
+            window.location.href = `{{ url_for('ngo_dashboard', ngo_id=0) }}`.replace('0', ngoId) + `?session_id=${sessionId}`;
+        } else {
+            // Fallback to current page refresh
+            window.location.reload();
+        }
+    }
+    
+    // Status Change Notification System
+    function showStatusNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `status-notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span class="notification-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+                <span class="notification-message">${message}</span>
+                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+        `;
+        
+        // Add notification styles
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--gradient-card);
+            border: 1px solid var(--color-border-gray);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: var(--shadow-soft);
+            z-index: 1000;
+            animation: slideInRight 0.3s ease;
+            max-width: 400px;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, 5000);
+    }
+    
+    // Add smooth scroll behavior
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add entrance animations
+        const statusBoxes = document.querySelectorAll('.status-box');
+        statusBoxes.forEach((box, index) => {
+            box.style.opacity = '0';
+            box.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                box.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                box.style.opacity = '1';
+                box.style.transform = 'translateY(0)';
+            }, index * 200);
+        });
+        
+        // Add hover effects for better interactivity
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px) scale(1.02)';
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+        
+        // Check for status changes and show notifications
+        const container = document.querySelector('.status-container');
+        if (container) {
+            const status = container.dataset.status;
+            const orgName = container.dataset.orgName;
+            
+            // Show appropriate notification based on status
+            if (status === 'accepted') {
+                showStatusNotification(`🎉 Congratulations! Your application for ${orgName} has been approved!`, 'success');
+            } else if (status === 'declined') {
+                showStatusNotification(`❌ Your application for ${orgName} was not approved. Please contact support for more information.`, 'error');
+            } else if (status === 'pending') {
+                showStatusNotification(`⏳ Your application for ${orgName} is currently under review.`, 'info');
+            }
+        }
+    });
+    
+    // Add keyboard navigation support
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            // Close any open modals or return to home
+            if (confirm('Return to home page?')) {
+                window.location.href = "{{ url_for('index') }}";
+            }
+        }
+      });
+  </script>
+{% endblock %}

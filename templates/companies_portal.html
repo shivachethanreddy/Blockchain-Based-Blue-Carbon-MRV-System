@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% block title %}Marketplace{% endblock %}
+
+{% block content %}
+<h2 class="page-title">Marketplace</h2>
+
+<div class="market-grid">
+  <div class="market-card" data-project="sundarbans">
+    <div class="market-title">Sundarbans Mangrove Restoration</div>
+    <div class="market-price">₹ 890 / 1 tCO₂e</div>
+    <button class="btn view-btn">View & Purchase</button>
+  </div>
+  <div class="market-card" data-project="mannar">
+    <div class="market-title">Gulf of Mannar Seagrass</div>
+    <div class="market-price">₹ 1,120 / 1 tCO₂e</div>
+    <button class="btn view-btn">View & Purchase</button>
+  </div>
+</div>
+
+<div id="project-details" class="project-details hidden">
+  <button id="revert-btn" class="btn btn-secondary">← Back to Marketplace</button>
+  <div class="details-content">
+    <div class="details-text">
+      <h3 id="project-title"></h3>
+      <p id="project-desc"></p>
+      <div class="market-price" id="project-price"></div>
+      <div class="market-tokens" id="project-tokens"></div>
+
+      <div class="buy-form">
+        <input type="text" id="user-name" placeholder="Full Name" required>
+        <input type="email" id="user-email" placeholder="Email" required>
+        <input type="tel" id="user-phone" placeholder="Phone Number" required>
+        <input type="number" id="buy-amount" placeholder="Number of Tokens to Buy" min="1" required>
+      </div>
+
+      <button class="btn buy-btn" id="buy-btn">Buy Credits</button>
+    </div>
+    <div class="details-image">
+      <img id="project-image" src="" alt="Project Image">
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const projects = {
+    sundarbans: {
+      title: "Sundarbans Mangrove Restoration",
+      desc: "This project restores mangroves in the Sundarbans region, enhancing biodiversity and sequestering large amounts of CO₂.",
+      price: 890, // per token
+      tokens: 80,
+      image: "{{ url_for('static', filename='images/sundar.jpeg') }}"
+    },
+    mannar: {
+      title: "Gulf of Mannar Seagrass",
+      desc: "Focused on seagrass meadows in the Gulf of Mannar, this initiative improves marine health and stores significant blue carbon.",
+      price: 1120,
+      tokens: 120,
+      image: "{{ url_for('static', filename='images/mannar.webp') }}"
+    }
+  };
+
+  const detailSection = document.getElementById('project-details');
+  const titleEl = document.getElementById('project-title');
+  const descEl = document.getElementById('project-desc');
+  const priceEl = document.getElementById('project-price');
+  const tokenEl = document.getElementById('project-tokens');
+  const imageEl = document.getElementById('project-image');
+  const revertBtn = document.getElementById('revert-btn');
+
+  const buyBtn = document.getElementById('buy-btn');
+  const userNameEl = document.getElementById('user-name');
+  const userEmailEl = document.getElementById('user-email');
+  const userPhoneEl = document.getElementById('user-phone');
+  const buyAmountEl = document.getElementById('buy-amount');
+
+  let currentProject = null;
+
+  // Show project details
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const card = e.target.closest('.market-card');
+      const key = card.dataset.project;
+      currentProject = projects[key];
+
+      titleEl.textContent = currentProject.title;
+      descEl.textContent = currentProject.desc;
+      priceEl.textContent = `₹ ${currentProject.price} / 1tCO₂e`;
+      tokenEl.textContent = `Available Tokens: ${currentProject.tokens}`;
+      imageEl.src = currentProject.image;
+
+      // Limit number of tokens input to available tokens
+      buyAmountEl.max = currentProject.tokens;
+
+      detailSection.classList.remove('hidden');
+      document.querySelector('.market-grid').classList.add('hidden');
+    });
+  });
+
+  // Revert back to marketplace
+  revertBtn.addEventListener('click', () => {
+    detailSection.classList.add('hidden');
+    document.querySelector('.market-grid').classList.remove('hidden');
+  });
+
+  // Buy button click - Dummy payment simulation
+  buyBtn.addEventListener('click', () => {
+    const name = userNameEl.value.trim();
+    const email = userEmailEl.value.trim();
+    const phone = userPhoneEl.value.trim();
+    const noOfTokens = parseInt(buyAmountEl.value);
+
+    if (!name || !email || !phone || !noOfTokens || noOfTokens <= 0) {
+      alert("Please fill all details correctly.");
+      return;
+    }
+
+    if (noOfTokens > currentProject.tokens) {
+      alert("Not enough tokens available!");
+      return;
+    }
+
+    // Simulate payment and generate certificate
+    const url = `/companies/generate-certificate?company_name=${encodeURIComponent(name)}&project_title=${encodeURIComponent(currentProject.title)}&tokens=${noOfTokens}`;
+    window.open(url, '_blank');
+
+    // Update available tokens
+    currentProject.tokens -= noOfTokens;
+    tokenEl.textContent = `Available Tokens: ${currentProject.tokens}`;
+    buyAmountEl.value = '';
+    userNameEl.value = '';
+    userEmailEl.value = '';
+    userPhoneEl.value = '';
+  });
+});
+</script>
+
+<style>
+.hidden { display: none; }
+
+.project-details {
+  margin-top: 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.details-content {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.details-text { flex: 2; }
+.details-text h3 { margin: 0 0 10px; font-size: 22px; font-weight: 800; }
+.details-text p { margin: 0 0 12px; }
+
+.details-image { flex: 1; }
+.details-image img {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.btn-secondary {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  margin-bottom: 14px;
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
+.buy-btn {
+  margin-top: 12px;
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: white;
+}
+.buy-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(34,197,94,0.45);
+}
+
+.market-tokens {
+  margin-top: 8px;
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+.buy-form input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="Government of India - NCCR">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#facc15"/>
+      <stop offset="1" stop-color="#fb923c"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="64" x2="64" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" stroke="url(#sea)" stroke-width="3" fill="none"/>
+  <!-- Ashoka-like abstract emblem -->
+  <g transform="translate(32,30)">
+    <circle r="10" stroke="url(#gold)" stroke-width="2" fill="none"/>
+    <g stroke="url(#gold)" stroke-width="2" stroke-linecap="round">
+      <line x1="0" y1="-10" x2="0" y2="-16"/>
+      <line x1="0" y1="10" x2="0" y2="16"/>
+      <line x1="10" y1="0" x2="16" y2="0"/>
+      <line x1="-10" y1="0" x2="-16" y2="0"/>
+      <line x1="7" y1="7" x2="11" y2="11"/>
+      <line x1="-7" y1="7" x2="-11" y2="11"/>
+      <line x1="7" y1="-7" x2="11" y2="-11"/>
+      <line x1="-7" y1="-7" x2="-11" y2="-11"/>
+    </g>
+  </g>
+  <!-- Waves to reflect coastal theme -->
+  <path d="M10 48c4 0 6-4 10-4s6 4 10 4 6-4 10-4 6 4 10 4" stroke="url(#sea)" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>
+

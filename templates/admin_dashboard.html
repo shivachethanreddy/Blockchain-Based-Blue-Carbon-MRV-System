@@ -1,0 +1,523 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Internal CSS scoped to admin dashboard only -->
+<style>
+/* Scoped admin styles — won't affect other templates */
+.admin-container { margin-top: 18px; }
+
+/* Top cards layout re-using .cards grid from global CSS but scoped */
+.admin-top {
+  margin: 18px 0 6px;
+}
+.admin-top .cards { gap: 18px; }
+
+/* Card press / click feel */
+.admin-top .card {
+  transition: transform 170ms cubic-bezier(.2,.9,.2,1), box-shadow 170ms cubic-bezier(.2,.9,.2,1);
+  will-change: transform;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.admin-top .card:active,
+.admin-top .card.pressed {
+  transform: translateY(3px) scale(0.996);
+  box-shadow: inset 0 8px 20px rgba(0,0,0,0.45);
+  background: rgba(255,255,255,0.04);
+}
+
+/* Visual active state when a card is the selected section */
+.admin-top .card.active {
+  border: 1px solid rgba(34,211,238,0.18);
+  box-shadow: 0 14px 36px rgba(34,211,238,0.10);
+  transform: translateY(-4px);
+}
+
+/* Slight icon styling inside card */
+.card .card-icon {
+  font-size: 28px;
+  display:block;
+  margin-bottom: 10px;
+  color: var(--ocean-1);
+}
+
+/* Section container */
+.dashboard-section {
+  display: none;
+  margin-top: 22px;
+  animation: sectionFade 220ms ease;
+}
+.dashboard-section.active {
+  display: block;
+}
+
+/* A gentle fade when the section appears */
+@keyframes sectionFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Small adjustments for table visuals inside the admin section */
+.applications-table { 
+  overflow-x: hidden; /* hide scrollbar */
+  cursor: grab;
+  -ms-overflow-style: none;  /* IE 10+ */
+  scrollbar-width: none;     /* Firefox */
+}
+.applications-table.active {
+  cursor: grabbing;
+}
+.applications-table table {
+  min-width: 900px; /* adjust based on number of columns */
+}
+.applications-table table th, .applications-table table td { white-space: nowrap; }
+
+/* Scrollbar styling for Webkit (Chrome, Edge, Safari) */
+.applications-table::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+.applications-table::-webkit-scrollbar-track {
+  background: #111; /* slightly lighter than black track #000 */
+  border-radius: 8px;
+}
+.applications-table::-webkit-scrollbar-thumb {
+   background-color: #444; /* subtle gray for visibility */
+  border-radius: 8px;
+  border: 2px solid #111; /* padding effect to make it stand out */
+}
+
+/* Make action buttons slightly tighter inside table */
+.btn-sm { padding: 6px 10px; font-size: 13px; }
+
+/* Mobile friendly: stack cards and make table horizontally scrollable */
+@media (max-width: 960px) {
+  .cards { grid-template-columns: 1fr; }
+  .applications-table { overflow-x: auto; }
+  .applications-table table { min-width: 640px; }
+}
+</style>
+
+<div class="admin-container container">
+
+  <h2 class="page-title">Admin Dashboard</h2>
+
+  <!-- Top 3 cards -->
+  <div class="admin-top">
+    <div class="cards">
+      <div class="card card-ngo" role="button" tabindex="0" data-target="ngoRegSection" aria-pressed="false">
+        <div class="card-icon">🌱</div>
+        <h2>NGO / Panchayat Registration</h2>
+        <p>Review new registrations and manage organizational accounts.</p>
+      </div>
+
+      <div class="card card-verify" role="button" tabindex="0" data-target="projectVerifySection" aria-pressed="false">
+        <div class="card-icon">🧭</div>
+        <h2>Project Verification</h2>
+        <p>Validate submitted project information and approve credit issuance.</p>
+      </div>
+
+      <div class="card card-info" role="button" tabindex="0" data-target="infoSection" aria-pressed="false">
+        <div class="card-icon">📊</div>
+        <h2>Information</h2>
+        <p>Quick overview of credits, active projects, and pending verifications.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: NGO / PANCHAYAT REGISTRATION (no project column) -->
+  <div id="ngoRegSection" class="dashboard-section">
+    <h3>NGO / Panchayat Applications</h3>
+    <div class="applications-table content-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Organization</th>
+            <th>Type</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ngo in all_ngos %}
+          <tr>
+            <td>{{ ngo.org_name }}</td>
+            <td>{{ ngo.org_type or 'NGO' }}</td>
+            <td>{{ ngo.email }}</td>
+            <td>
+              <span class="status-badge status-{{ ngo.status }}">{{ ngo.status.title() }}</span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-info" onclick="showNgoInfo({{ ngo.id }})">Info</button>
+              {% if ngo.status == 'pending' %}
+                <button class="btn btn-sm btn-success" onclick="confirmAction({{ ngo.id }}, 'accepted')">Accept</button>
+                <button class="btn btn-sm btn-danger" onclick="confirmAction({{ ngo.id }}, 'declined')">Decline</button>
+              {% elif ngo.status == 'accepted' %}
+                <button class="btn btn-sm btn-danger" onclick="confirmAction({{ ngo.id }}, 'declined')">Decline</button>
+              {% elif ngo.status == 'declined' %}
+                <button class="btn btn-sm btn-success" onclick="confirmAction({{ ngo.id }}, 'accepted')">Accept</button>
+              {% else %}
+                <span class="text-muted">No actions</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION: PROJECT VERIFICATION (with project + extra fields) -->
+  <div id="projectVerifySection" class="dashboard-section">
+    <h3>Project Verification</h3>
+    <div class="applications-table content-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Organization</th>
+            <th>Project</th>
+            <th>Type</th>
+            <th>Email</th>
+            <th>Submitted On</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ngo in all_ngos %}
+          <tr>
+            <td>{{ ngo.org_name }}</td>
+            <td>{{ ngo.project_title or '—' }}</td>
+            <td>{{ ngo.org_type or 'NGO' }}</td>
+            <td>{{ ngo.email }}</td>
+            <td class="submitted-on">—</td>
+            <td class="location">—</td>
+            <td>
+              <span class="status-badge status-{{ ngo.status }}">{{ ngo.status.title() }}</span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-info" onclick="showNgoInfo({{ ngo.id }})">Info</button>
+              {% if ngo.status == 'pending' %}
+                <button class="btn btn-sm btn-success" onclick="confirmAction({{ ngo.id }}, 'accepted')">Accept</button>
+                <button class="btn btn-sm btn-danger" onclick="confirmAction({{ ngo.id }}, 'declined')">Decline</button>
+              {% elif ngo.status == 'accepted' %}
+                <button class="btn btn-sm btn-danger" onclick="confirmAction({{ ngo.id }}, 'declined')">Decline</button>
+              {% elif ngo.status == 'declined' %}
+                <button class="btn btn-sm btn-success" onclick="confirmAction({{ ngo.id }}, 'accepted')">Accept</button>
+              {% else %}
+                <span class="text-muted">No actions</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION: INFORMATION (stats) -->
+  <div id="infoSection" class="dashboard-section">
+    <div class="dashboard-grid">
+      <div class="stat-card">
+        <div class="stat-label">Verified Credits</div>
+        <div class="stat-value">120</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Projects</div>
+        <div class="stat-value">3</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pending Verifications</div>
+        <div class="stat-value">{{ pending_ngos|length }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals (NGO info, confirm, file viewer) -->
+  <div id="ngoInfoModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>NGO Application Details</h3>
+        <span class="close" onclick="closeModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div id="ngoDetails"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Confirm Action</h3>
+        <span class="close" onclick="closeConfirmModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p id="confirmMessage"></p>
+        <div class="modal-actions">
+          <button class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+          <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="fileViewerModal" class="modal">
+    <div class="modal-content file-viewer">
+      <div class="modal-header">
+        <h3 id="fileViewerTitle">Document Viewer</h3>
+        <span class="close" onclick="closeFileViewer()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div id="fileViewerContent"></div>
+      </div>
+    </div>
+  </div>
+
+</div> <!-- /container -->
+
+<!-- JS: section switching, modals, actions. Keep this at bottom of the template -->
+<script>
+  const ngoData = {{ all_ngos | tojson | safe }};
+
+  function getNgoById(id){
+    return ngoData.find(n => Number(n.id) === Number(id));
+  }
+
+  /* ---------- Section switching logic ---------- */
+  (function setupSectionCards(){
+    const cards = document.querySelectorAll('.admin-top .card');
+    const sections = document.querySelectorAll('.dashboard-section');
+
+    function clearActiveCards(){
+      cards.forEach(c => {
+        c.classList.remove('active');
+        c.setAttribute('aria-pressed','false');
+      });
+    }
+
+    function hideAllSections(){
+      sections.forEach(s => s.classList.remove('active'));
+    }
+
+    function showSectionById(id){
+      hideAllSections();
+      clearActiveCards();
+      const sec = document.getElementById(id);
+      if(sec) sec.classList.add('active');
+
+      const card = document.querySelector(`[data-target="${id}"]`);
+      if(card) {
+        card.classList.add('active');
+        card.setAttribute('aria-pressed','true');
+      }
+
+      // Scroll down slightly to reveal output
+      sec.scrollIntoView({behavior: 'smooth', block: 'start'});
+      window.scrollBy(0, -0); // adjust 80px offset to show card above
+    }
+
+    cards.forEach(card => {
+      const target = card.dataset.target;
+      card.addEventListener('click', (e) => {
+        card.classList.add('pressed');
+        setTimeout(()=> card.classList.remove('pressed'), 150);
+        if(target) showSectionById(target);
+      });
+
+      card.addEventListener('keydown', (ev) => {
+        if(ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          card.classList.add('pressed');
+          setTimeout(()=> card.classList.remove('pressed'), 150);
+          if(target) showSectionById(target);
+        }
+      });
+    });
+  })();
+
+  /* ---------- Modal & action logic ---------- */
+  function showNgoInfo(ngoId){
+    const ngo = getNgoById(ngoId);
+    if(!ngo) return;
+
+    const modal = document.getElementById('ngoInfoModal');
+    const details = document.getElementById('ngoDetails');
+
+    const files = (ngo.files && typeof ngo.files === 'object') ? ngo.files : {};
+    const reg = files.registration_certificate || files.reg || 'sample_reg.pdf';
+    const pan = files.pan_card || files.pan || 'sample_pan.pdf';
+    const tax = files.tax_certificate || files.tax || 'sample_tax.pdf';
+
+    details.innerHTML = `
+      <div class="info-section">
+        <h4>Organization Information</h4>
+        <p><strong>Name:</strong> ${ngo.org_name || '—'}</p>
+        <p><strong>Type:</strong> ${ngo.org_type || '—'}</p>
+        <p><strong>Email:</strong> ${ngo.email || '—'}</p>
+        <p><strong>Project:</strong> ${ngo.project_title || '—'}</p>
+        <p><strong>Status:</strong> <span class="status-badge status-${ngo.status}">${(ngo.status||'—').toString().toUpperCase()}</span></p>
+      </div>
+
+      <div class="info-section">
+        <h4>Uploaded Documents</h4>
+        <div class="document-list">
+          <div class="document-item">
+            <span class="doc-icon">📄</span>
+            <span class="doc-name">Registration Certificate</span>
+            <span class="doc-status">Uploaded</span>
+            <button class="btn btn-sm btn-view" onclick="viewFile('${reg}')">View</button>
+          </div>
+          <div class="document-item">
+            <span class="doc-icon">🆔</span>
+            <span class="doc-name">PAN Card</span>
+            <span class="doc-status">Uploaded</span>
+            <button class="btn btn-sm btn-view" onclick="viewFile('${pan}')">View</button>
+          </div>
+          <div class="document-item">
+            <span class="doc-icon">📋</span>
+            <span class="doc-name">12A/80G / Tax Certificate</span>
+            <span class="doc-status">Uploaded</span>
+            <button class="btn btn-sm btn-view" onclick="viewFile('${tax}')">View</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    modal.style.display = 'block';
+  }
+
+  function closeModal(){ document.getElementById('ngoInfoModal').style.display = 'none'; }
+
+  function confirmAction(ngoId, action){
+    const ngo = getNgoById(ngoId);
+    if(!ngo) return;
+
+    const modal = document.getElementById('confirmModal');
+    const message = document.getElementById('confirmMessage');
+    const confirmBtn = document.getElementById('confirmActionBtn');
+
+    const pretty = action.charAt(0).toUpperCase() + action.slice(1);
+    message.textContent = `Are you sure you want to ${pretty} the application for ${ngo.org_name || 'this organization'}?`;
+    confirmBtn.textContent = pretty;
+
+    confirmBtn.className = `btn ${action === 'accepted' ? 'btn-success' : 'btn-danger'}`;
+
+    confirmBtn.onclick = () => {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '{{ url_for("admin_update_ngo_status") }}';
+
+      const ngoIdInput = document.createElement('input');
+      ngoIdInput.type = 'hidden';
+      ngoIdInput.name = 'ngo_id';
+      ngoIdInput.value = ngoId;
+
+      const statusInput = document.createElement('input');
+      statusInput.type = 'hidden';
+      statusInput.name = 'status';
+      statusInput.value = action;
+
+      form.appendChild(ngoIdInput);
+      form.appendChild(statusInput);
+      document.body.appendChild(form);
+      form.submit();
+    };
+
+    modal.style.display = 'block';
+  }
+
+  function closeConfirmModal(){ document.getElementById('confirmModal').style.display = 'none'; }
+
+  function viewFile(filename){
+    const modal = document.getElementById('fileViewerModal');
+    const title = document.getElementById('fileViewerTitle');
+    const content = document.getElementById('fileViewerContent');
+    const fileExtension = (filename || '').split('.').pop().toLowerCase();
+    const filePath = `/static/uploads/${filename}`;
+    title.textContent = `Viewing: ${filename}`;
+
+    if(fileExtension === 'pdf'){
+      content.innerHTML = `<iframe src="${filePath}" width="100%" height="600px" style="border: none; border-radius: 8px;"></iframe>
+      <div class="file-actions">
+        <a href="${filePath}" target="_blank" class="btn btn-primary">Open in New Tab</a>
+        <a href="${filePath}" download class="btn btn-secondary">Download</a>
+      </div>`;
+    } else if(['jpg','jpeg','png'].includes(fileExtension)){
+      content.innerHTML = `<img src="${filePath}" alt="${filename}" style="max-width:100%; max-height:600px; border-radius:8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" />
+      <div class="file-actions">
+        <a href="${filePath}" target="_blank" class="btn btn-primary">Open in New Tab</a>
+        <a href="${filePath}" download class="btn btn-secondary">Download</a>
+      </div>`;
+    } else {
+      content.innerHTML = `<div class="file-preview"><span class="file-icon-large">📄</span><p>Preview not available for this file type.</p></div>
+      <div class="file-actions">
+        <a href="${filePath}" target="_blank" class="btn btn-primary">Open in New Tab</a>
+        <a href="${filePath}" download class="btn btn-secondary">Download</a>
+      </div>`;
+    }
+
+    modal.style.display = 'block';
+  }
+
+  function closeFileViewer(){ document.getElementById('fileViewerModal').style.display = 'none'; }
+
+  window.onclick = function(event){
+    if(event.target === document.getElementById('ngoInfoModal')) closeModal();
+    if(event.target === document.getElementById('confirmModal')) closeConfirmModal();
+    if(event.target === document.getElementById('fileViewerModal')) closeFileViewer();
+  }
+
+  /* ---------- Randomize Submitted On & Location ---------- */
+  document.addEventListener('DOMContentLoaded', () => {
+    const locations = ['Sundarbans, WB', 'Chennai, TN', 'Goa Coast', 'Andaman Islands', 'Mumbai, MH'];
+    const tableRows = document.querySelectorAll('#projectVerifySection tbody tr');
+    tableRows.forEach(row => {
+      const randomDaysAgo = Math.floor(Math.random() * 30);
+      const date = new Date();
+      date.setDate(date.getDate() - randomDaysAgo);
+      const dateStr = date.toISOString().split('T')[0];
+      row.querySelector('.submitted-on').textContent = dateStr;
+      row.querySelector('.location').textContent = locations[Math.floor(Math.random() * locations.length)];
+    });
+  });
+
+	/* ---------- Drag-to-scroll table for horizontal scrolling ---------- */
+const slider = document.querySelectorAll('.applications-table');
+slider.forEach(slide => {
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+
+  slide.addEventListener('mousedown', (e) => {
+    isDown = true;
+    slide.classList.add('active');
+    startX = e.pageX - slide.offsetLeft;
+    scrollLeft = slide.scrollLeft;
+  });
+
+  slide.addEventListener('mouseleave', () => {
+    isDown = false;
+    slide.classList.remove('active');
+  });
+
+  slide.addEventListener('mouseup', () => {
+    isDown = false;
+    slide.classList.remove('active');
+  });
+
+  slide.addEventListener('mousemove', (e) => {
+    if(!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - slide.offsetLeft;
+    const walk = (x - startX) * 2; // scroll-fast multiplier
+    slide.scrollLeft = scrollLeft - walk;
+  });
+});
+
+</script>
+
+{% endblock %}

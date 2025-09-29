@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}NGO/Panchayat Login{% endblock %}
+{% block content %}
+	<div class="auth-container">
+		<h2 class="page-title">NGO/Panchayat Login</h2>
+		<form class="form" method="post">
+			<label>Email Address
+				<input type="email" name="email" required />
+			</label>
+			<label>Password
+				<input type="password" name="password" required />
+			</label>
+			<button class="btn" type="submit">Login</button>
+			<div class="auth-switch">
+				<p>Don't have an account? <a href="{{ url_for('ngo_register') }}">Register here</a></p>
+			</div>
+		</form>
+	</div>
+{% endblock %}

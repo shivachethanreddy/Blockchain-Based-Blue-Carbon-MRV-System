@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% block title %}NGO/Panchayat Registration{% endblock %}
+{% block content %}
+	<div class="auth-container">
+		<div class="auth-tabs">
+			<button class="auth-tab active" data-tab="register">Register</button>
+			<button class="auth-tab" data-tab="login">Login</button>
+		</div>
+		
+		<!-- Registration Form -->
+		<div class="auth-content" id="register-content">
+			<h2 class="page-title">NGOs/Panchayats Registration</h2>
+	<form class="form" method="post" enctype="multipart/form-data">
+		<label>Organization Name
+			<input name="org_name" required />
+		</label>
+		<label>Email Address
+			<input type="email" name="email" required />
+		</label>
+		<label>Password
+			<input type="password" name="password" required />
+		</label>
+		<label>Organization Type
+			<div class="option-group" role="radiogroup" aria-label="Organization Type">
+				<label class="option">
+					<input type="radio" name="org_type" value="NGO" required class="radio-visually-hidden" />
+					<div class="option-card">
+						<span class="option-icon" aria-hidden="true"></span>
+						<span class="option-title">NGO</span>
+						<span class="option-desc">Registered non-governmental organization</span>
+					</div>
+				</label>
+				<label class="option">
+					<input type="radio" name="org_type" value="Panchayat" required class="radio-visually-hidden" />
+					<div class="option-card">
+						<span class="option-icon" aria-hidden="true"></span>
+						<span class="option-title">Panchayat</span>
+						<span class="option-desc">Local self-government body</span>
+					</div>
+				</label>
+			</div>
+			<small class="hint">Used for eligibility and document requirements.</small>
+		</label>
+		<label>Project Name
+			<input name="project_title" required />
+		</label>
+		
+		<!-- Document Upload Section -->
+		<div class="file-upload-section">
+			<h3>Required Documents</h3>
+			<div class="file-grid">
+				<div class="file-field">
+					<label class="file-upload-label">
+						<span class="file-title">Registration Certificate</span>
+						<span class="file-subtitle">Society Registration Certificate / Trust Deed / Section 8 Company Incorporation Certificate</span>
+						<input type="file" name="registration_certificate" accept=".pdf,.jpg,.jpeg,.png" required />
+						<div class="file-upload-area">
+							
+							<span class="file-text">Click to upload or drag and drop</span>
+							<span class="file-format">PDF, JPG, PNG</span>
+						</div>
+						<div class="file-name-display" data-filename="registration_certificate">No file selected</div>
+					</label>
+				</div>
+				
+				<div class="file-field">
+					<label class="file-upload-label">
+						<span class="file-title">PAN Card</span>
+						<span class="file-subtitle">Mandatory for financial/legal verification</span>
+						<input type="file" name="pan_card" accept=".pdf,.jpg,.jpeg,.png" required />
+						<div class="file-upload-area">
+							
+							<span class="file-text">Click to upload or drag and drop</span>
+							<span class="file-format">PDF, JPG, PNG</span>
+						</div>
+						<div class="file-name-display" data-filename="pan_card">No file selected</div>
+					</label>
+				</div>
+				
+				<div class="file-field">
+					<label class="file-upload-label">
+						<span class="file-title">12A or 80G Certificate</span>
+						<span class="file-subtitle">Shows NGO is recognized for tax exemption and active in charitable work</span>
+						<input type="file" name="tax_certificate" accept=".pdf,.jpg,.jpeg,.png" required />
+						<div class="file-upload-area">
+							
+							<span class="file-text">Click to upload or drag and drop</span>
+							<span class="file-format">PDF, JPG, PNG</span>
+						</div>
+						<div class="file-name-display" data-filename="tax_certificate">No file selected</div>
+					</label>
+				</div>
+			</div>
+		</div>
+		
+		<button class="btn" type="submit">Submit Registration</button>
+	</form>
+		</div>
+		
+		<!-- Login Form -->
+		<div class="auth-content" id="login-content" style="display: none;">
+			<h2 class="page-title">NGO/Panchayat Login</h2>
+			<form class="form" method="post" action="{{ url_for('ngo_login') }}">
+				<label>Email Address
+					<input type="email" name="email" required />
+				</label>
+				<label>Password
+					<input type="password" name="password" required />
+				</label>
+				<button class="btn" type="submit">Login</button>
+				<div class="auth-switch">
+					<p>Don't have an account? <a href="#" onclick="switchTab('register')">Register here</a></p>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<script>
+		function switchTab(tabName) {
+			// Hide all content
+			document.querySelectorAll('.auth-content').forEach(content => {
+				content.style.display = 'none';
+			});
+			
+			// Remove active class from all tabs
+			document.querySelectorAll('.auth-tab').forEach(tab => {
+				tab.classList.remove('active');
+			});
+			
+			// Show selected content
+			document.getElementById(tabName + '-content').style.display = 'block';
+			
+			// Add active class to selected tab
+			document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+		}
+		
+		// Add click handlers to tabs
+		document.querySelectorAll('.auth-tab').forEach(tab => {
+			tab.addEventListener('click', () => {
+				switchTab(tab.dataset.tab);
+			});
+		});
+		
+		// File upload functionality
+		document.querySelectorAll('input[type="file"]').forEach(input => {
+			const filenameDisplay = input.parentElement.querySelector('[data-filename]');
+			const uploadArea = input.parentElement.querySelector('.file-upload-area');
+			
+			input.addEventListener('change', function() {
+				if (this.files && this.files[0]) {
+					filenameDisplay.textContent = this.files[0].name;
+					filenameDisplay.style.color = '#10b981';
+					uploadArea.style.borderColor = '#10b981';
+					uploadArea.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+				} else {
+					filenameDisplay.textContent = 'No file selected';
+					filenameDisplay.style.color = '#6b7280';
+					uploadArea.style.borderColor = '#d1d5db';
+					uploadArea.style.backgroundColor = 'transparent';
+				}
+			});
+			
+			// Drag and drop functionality
+			uploadArea.addEventListener('dragover', (e) => {
+				e.preventDefault();
+				uploadArea.style.borderColor = '#3b82f6';
+				uploadArea.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+			});
+			
+			uploadArea.addEventListener('dragleave', () => {
+				uploadArea.style.borderColor = '#d1d5db';
+				uploadArea.style.backgroundColor = 'transparent';
+			});
+			
+			uploadArea.addEventListener('drop', (e) => {
+				e.preventDefault();
+				uploadArea.style.borderColor = '#d1d5db';
+				uploadArea.style.backgroundColor = 'transparent';
+				
+				if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+					input.files = e.dataTransfer.files;
+					input.dispatchEvent(new Event('change'));
+				}
+			});
+		});
+	</script>
+{% endblock %}
+

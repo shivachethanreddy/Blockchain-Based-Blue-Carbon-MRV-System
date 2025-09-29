@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Welcome | NCCR Blue Carbon Portal{% endblock %}
+{% block content %}
+	<section class="hero">
+		<div class="hero-text">
+			<h1>Blue Carbon Registry</h1>
+			<p>Verify, register, and trade coastal blue carbon credits with transparency and trust.</p>
+		</div>
+	</section>
+
+	<section class="cards">
+		<a class="card card-admin" href="{{ url_for('admin_login') }}" aria-label="Enter Admin Portal">
+			<div class="card-floating"></div>
+			<h2>NCCR Admin Login</h2>
+			<p>Administrative access for oversight, verification, and system configuration.</p>
+
+		</a>
+
+		<a class="card card-ngo" href="{{ url_for('ngo_register') }}" aria-label="Register Organization">
+			<div class="card-floating"></div>
+			<h2>NGOs/Panchayats Registration</h2>
+			<p>Streamlined onboarding for blue carbon initiatives and coastal restoration projects.</p>
+			
+
+		</a>
+
+		<a class="card card-company" href="{{ url_for('companies_login') }}" aria-label="Enter Marketplace">
+			<div class="card-floating"></div>
+			<h2>Companies/Buyers Login</h2>
+			<p>Access the marketplace, manage credits, and download compliance certificates.</p>
+			
+
+		</a>
+	</section>
+{% endblock %}
+
