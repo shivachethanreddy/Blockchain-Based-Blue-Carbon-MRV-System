@@ -2,3 +2,5 @@ flask
 flask_sqlalchemy
 flask_migrate
 werkzeug
+gunicorn
+web3
